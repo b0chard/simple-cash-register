@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Cash Register</title>
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./index.css">
   </head>
   <body>
     <div class="customer-input-ctn">
@@ -19,9 +19,9 @@
         <div id="change-due"></div>
       </div>
 
-      <div class="product-list">
+      <div id="product-list" class="product-list">
         <div class="product-wrapper">
-          <p class="product-name">Water <span id="price-tag">$1.00</span></p>
+          <p class="product-name">Water Bottle <span class="price-tag">$1.00</span></p>
           <div class="quantity-controls">
             <button class="minus-btn">-</button>
             <p class="product-quantity">0</p>
@@ -29,7 +29,7 @@
           </div>
         </div>
         <div class="product-wrapper">
-          <p class="product-name">Bread <span id="price-tag">$2.50</span></p>
+          <p class="product-name">Bread <span class="price-tag">$2.50</span></p>
           <div class="quantity-controls">
             <button class="minus-btn">-</button>
             <p class="product-quantity">0</p>
@@ -41,6 +41,6 @@
       <div id="change-drawer"></div>
     </div>
 
-    <script src="./script.js"></script>
+    <script src="./index.js"></script>
   </body>
 </html>
