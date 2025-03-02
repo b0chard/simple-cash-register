@@ -7,9 +7,8 @@ const productQuantity = document.querySelectorAll('.product-quantity');
 const changeDrawer = document.getElementById('change-drawer');
 
 let totalChangeToReturn = 0;
-let price = 19.5; // 1.87 - original
+let price = 0;
 let cart = {};
-let totalPriceOnCart = 0;
 let cid = [
   ['PENNY', 1.01],        // 101 pennies
   ['NICKEL', 2.05],       // 41 nickels
@@ -38,39 +37,76 @@ const productsPrice = {
   'coffee': 1.5
 }
 
-// ===== TODO: CALCULATE THE CHANGE =====
+// ===== CALCULATE THE CHANGE =====
 function calculateChange(amount) {
+  console.log('CID Before:', JSON.stringify(cid));
   let reversedCid = [...cid].reverse();
   let changeToReturn = [];
-
-  while (amount < currencyValue) {
-      
-  }
+  let remainingAmount = Math.round(amount * 100);
+  let tempCid = [];
+  let status = '';
+  let totalCashAvailable = Math.round(cid.reduce((sum, [, value]) => sum + value, 0) * 100);
+  let cashUsed = 0;
   
-  reversedCid.forEach((arr) => {
-    const cashName = arr[0];
-    const cashValue = arr[1];
+  reversedCid.forEach(([cashName, cashAvailable]) => {
+    let amountFromThisCurrency = 0;
+    let cashAvailableInCents = Math.round(cashAvailable * 100);
+    let unitValueInCents = Math.round(currency[cashName] * 100);
 
-    while (currency[cashName] < amount) {
-      changeToReturn += amount - cashValue;
+    while (remainingAmount >= unitValueInCents && cashAvailableInCents >= unitValueInCents) {
+      amountFromThisCurrency += unitValueInCents;
+      remainingAmount -= unitValueInCents;
+      cashAvailableInCents -= unitValueInCents;
     }
+
+    if (amountFromThisCurrency > 0) {
+      changeToReturn.push([cashName, amountFromThisCurrency / 100]);
+    }
+
+    cashUsed += amountFromThisCurrency;
+    tempCid.push([cashName, cashAvailableInCents / 100]);
   })
-  totalChangeToReturn = changeToReturn;
+
+  if (remainingAmount > 0) {
+    status = 'INSUFFICIENT_FUNDS';
+    changeToReturn = [];
+  } else if (remainingAmount === 0 && cashUsed === totalCashAvailable) {
+    status = 'CLOSED';
+    changeToReturn = [...cid];
+  } else {
+    status = 'OPEN';
+  }
+
+  cid = tempCid.reverse();
+  updateChangeDue(status, changeToReturn);
+
+  console.log('Total Price:', price);
+  console.log('Cash Given:', cash.value);
+
+  console.log('Remaining Amount:', remainingAmount);
+  console.log('Change to Return:', changeToReturn);
+  console.log('Total Cash Available:', totalCashAvailable);
+  console.log('Cash Used:', cashUsed);
+  console.log('CID After:', JSON.stringify(tempCid));
 }
 
 // ===== CHECK IF CASH IS GREATER THAN THE TOTAL PRICE IN CART =====
 function checkCashAmount(cash) {
-  if (cash < totalPriceOnCart || !cash) {
+  if (cash < price || !cash) {
     alert('Customer does not have enough money to purchase the item');
     return;
-  } else if (cash === totalPriceOnCart) {
+  } else if (cash === price) {
     changeDue.textContent = 'No change due - customer paid with exact cash';
     return; // remove this soon
-  } else if (cash > totalPriceOnCart) {
-    const difference = cash - totalPriceOnCart;
-    alert('proceeded to calculate change');
+  } else if (cash > price) {
+    const difference = cash - price;
     calculateChange(difference);
   }
+}
+
+// ===== RESET CART OBJECT =====
+function resetCart() {
+  cart = {};
 }
 
 // ===== REMOVE INPUT =====
@@ -90,9 +126,24 @@ function resetPriceIndicator() {
   totalPriceIndicator.textContent = '$0.00';
 }
 
+// ===== UPDATE CHANGE DUE TEXT CONTENT =====
+function updateChangeDue(status, arr) {
+  let output = `Status: ${status}<br>`;
+
+  arr.forEach((arr) => {
+    const name = arr[0];
+    const value = arr[1];
+
+    output += `${name}: $${value}<br>`;
+  })
+
+  changeDue.innerHTML = output;
+  console.log(cid);
+}
+
 // ===== UPDATE THE TOTAL ON PRICE INDICATOR =====
 function updatePriceIndicator() {
-  totalPriceIndicator.textContent = `$${totalPriceOnCart.toFixed(2)}`;
+  totalPriceIndicator.textContent = `$${price.toFixed(2)}`;
 }
 
 // ===== CALCULATE THE TOTAL OF PRODUCTS ADDED =====
@@ -101,7 +152,7 @@ function calculateCartItems() {
   Object.entries(cart).forEach(([product, price]) => {
     temporaryPrice += price * productsPrice[product];
   })
-  totalPriceOnCart = temporaryPrice;
+  price = temporaryPrice;
 }
 
 // ===== WHEN PLUS BTN OR MINUS BTN IS CLICKED =====
@@ -152,9 +203,10 @@ productList.addEventListener('click', (e) => {
 
 // ===== LISTEN FOR PURCHASE CLICK =====
 purchaseBtn.addEventListener('click', () => {
-  const cashValue = Number(cash.value);
+  const cashValue = parseFloat(cash.value);
   checkCashAmount(cashValue);
   removeInput();
+  resetCart();
   resetProductListQuantity()
   resetPriceIndicator()
 })
