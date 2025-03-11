@@ -1,3 +1,5 @@
+/* file: script.js */
+
 const cash = document.getElementById('cash');
 const purchaseBtn = document.getElementById('purchase-btn');
 const totalPriceIndicator = document.getElementById('total-price');
@@ -39,7 +41,6 @@ const productsPrice = {
 
 // ===== CALCULATE THE CHANGE =====
 function calculateChange(amount) {
-  console.log('CID Before:', JSON.stringify(cid));
   let reversedCid = [...cid].reverse();
   let changeToReturn = [];
   let remainingAmount = Math.round(amount * 100);
@@ -47,7 +48,7 @@ function calculateChange(amount) {
   let status = '';
   let totalCashAvailable = Math.round(cid.reduce((sum, [, value]) => sum + value, 0) * 100);
   let cashUsed = 0;
-  
+
   reversedCid.forEach(([cashName, cashAvailable]) => {
     let amountFromThisCurrency = 0;
     let cashAvailableInCents = Math.round(cashAvailable * 100);
@@ -65,7 +66,7 @@ function calculateChange(amount) {
 
     cashUsed += amountFromThisCurrency;
     tempCid.push([cashName, cashAvailableInCents / 100]);
-  })
+  });
 
   if (remainingAmount > 0) {
     status = 'INSUFFICIENT_FUNDS';
@@ -79,15 +80,6 @@ function calculateChange(amount) {
 
   cid = tempCid.reverse();
   updateChangeDue(status, changeToReturn);
-
-  console.log('Total Price:', price);
-  console.log('Cash Given:', cash.value);
-
-  console.log('Remaining Amount:', remainingAmount);
-  console.log('Change to Return:', changeToReturn);
-  console.log('Total Cash Available:', totalCashAvailable);
-  console.log('Cash Used:', cashUsed);
-  console.log('CID After:', JSON.stringify(tempCid));
 }
 
 // ===== CHECK IF CASH IS GREATER THAN THE TOTAL PRICE IN CART =====
@@ -130,15 +122,19 @@ function resetPriceIndicator() {
 function updateChangeDue(status, arr) {
   let output = `Status: ${status}<br>`;
 
-  arr.forEach((arr) => {
-    const name = arr[0];
-    const value = arr[1];
-
-    output += `${name}: $${value}<br>`;
-  })
+  if (status === 'OPEN') {
+    arr.forEach(([name, value]) => {
+      output += `${name}: $${value.toFixed(2)}<br>`;
+    });
+  } else if (status === 'CLOSED') {
+    arr.forEach(([name, value]) => {
+      if (value > 0) {
+        output += `${name}: $${value.toFixed(2)}<br>`;
+      }
+    });
+  }
 
   changeDue.innerHTML = output;
-  console.log(cid);
 }
 
 // ===== UPDATE THE TOTAL ON PRICE INDICATOR =====
